@@ -1,0 +1,7 @@
+
+#IDE Files
+.idea/*
+
+*.pyc
+
+gtork/config.py
