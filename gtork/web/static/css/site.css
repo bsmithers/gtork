@@ -8,3 +8,9 @@
 .row-striped:nth-of-type(even){
   background-color: #ffffff;
 }
+
+#status{
+    margin:auto;
+    text-align: center;
+}
+

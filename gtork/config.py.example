@@ -1,2 +1,3 @@
 GARMIN_USERNAME = ""
 GARMIN_PASSWORD = ""
+DEV = False

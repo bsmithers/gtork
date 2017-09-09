@@ -1,6 +1,8 @@
 import re
 import requests
 
+from gtork import config
+
 
 class GarminException(Exception):
     pass
@@ -56,6 +58,10 @@ class Garmin(object):
             raise GarminException("Must be logged in to fetch activities")
         r = self._session.get(self.activity_url)
         self._check_response(r, "fetching the activity URL")
+        if config.DEV:
+            import json
+            with open('/tmp/garmin.json', 'w') as fh:
+                json.dump(r.json(), fh)
         return r.json()
 
     def download_activity(self):
