@@ -40,7 +40,7 @@ function upload(span, activity_id){
     $(span).html('<span>Uploading activitiy...</span>');
     console.log(activity_id);
     var post_data = {"id" : activity_id};
-    $.post("/upload", activity_id, function(data) {
+    $.post($SCRIPT_ROOT+"/upload", activity_id, function(data) {
         $("#status").html('<div class="alert alert-success" role="alert"> <strong>Done!</strong> Activity uploaded successfully. </div>')
         $(span).html('<span>Uploaded</span>');
     }).fail(function(){
@@ -63,7 +63,7 @@ function generate_row(activity){
 
 $(document).ready(function() {
     console.log("Loading activities");
-    $.get( "/activities", function(data) {
+    $.get($SCRIPT_ROOT + "/activities", function(data) {
         try {
             $("#list-container").empty()
             data.forEach(function (activity) {
