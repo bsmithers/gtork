@@ -40,7 +40,7 @@ function upload(span, activity_id){
     $(span).html('<span>Uploading activitiy...</span>');
     console.log(activity_id);
     var post_data = {"id" : activity_id};
-    $.post($SCRIPT_ROOT+"/upload", activity_id, function(data) {
+    $.post($SCRIPT_ROOT+"/upload", post_data, function(data) {
         $("#status").html('<div class="alert alert-success" role="alert"> <strong>Done!</strong> Activity uploaded successfully. </div>')
         $(span).html('<span>Uploaded</span>');
     }).fail(function(){
@@ -53,10 +53,10 @@ function upload(span, activity_id){
 function generate_row(activity){
     // Returns HTML for one row corresponding to one activity
     return '<div class="row row-striped activity-row">' +
-            '<div class="col-lg-4 col-sm-8">' + activity["activityName"] + '</div>' +
-            '<div class="col-lg-2 col-sm-4">' + format_distance(activity["distance"]) + '</div>' +
-            '<div class="col-lg-3 col-sm-8">' + format_datetime(activity["startTimeLocal"]) + '</div>' +
-            '<div class="col-lg-3 col-sm-4"><span class="upload_link" href="#" onclick="upload(this, ' + activity['activityId'] + ')" ><a href="#">Upload Now</a></span></div>' +
+            '<div class="col-lg-4 col-md-8 col-12">' + activity["activityName"] + '</div>' +
+            '<div class="col-lg-2 col-md-4 col-12">' + format_distance(activity["distance"]) + '</div>' +
+            '<div class="col-lg-3 col-md-8 col-12">' + format_datetime(activity["startTimeLocal"]) + '</div>' +
+            '<div class="col-lg-3 col-md-4 col-12"><span class="upload_link" href="#" onclick="upload(this, ' + activity['activityId'] + ')" ><a href="#">Upload Now</a></span></div>' +
     '</div>';
 }
 
