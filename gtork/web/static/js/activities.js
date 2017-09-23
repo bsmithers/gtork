@@ -24,6 +24,13 @@ function is_yesteday(d1, d2){
     return d1.getTime() - d2.getTime() === 1000 * 60 * 60 * 24;
 }
 
+function pad(n, width, z) {
+    //https://stackoverflow.com/a/1007378
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
 function format_datetime(datetime){
     var d = new Date(datetime);
     var now = new Date();
@@ -33,7 +40,7 @@ function format_datetime(datetime){
     }else if(is_yesteday(now, d)){
         day = "Yesterday"
     }
-    return day + " at " + d.getHours() + ":" + d.getMinutes()
+    return day + " at " + pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2)
 }
 
 function upload(span, activity_id){
