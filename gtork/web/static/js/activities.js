@@ -43,8 +43,16 @@ function upload(span, activity_id){
     $.post($SCRIPT_ROOT+"/upload", post_data, function(data) {
         $("#status").html('<div class="alert alert-success" role="alert"> <strong>Done!</strong> Activity uploaded successfully. </div>')
         $(span).html('<span>Uploaded</span>');
-    }).fail(function(){
-        $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> Couldn\'t upload that activity right now </div>');
+    }).fail(function(data){
+        var reason = "There was an error. That's all we know.";
+        try{
+            var response = JSON.parse(data.responseText);
+            var reason = response['error'];
+        } catch(e){
+            console.log("malformed response");
+        }
+
+        $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> Couldn\'t upload that activity right now. ' + reason + '</div>');
         $(span).html('<span>Upload Failed</span>');
     });
 

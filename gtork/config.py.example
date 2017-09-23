@@ -1,3 +1,5 @@
 GARMIN_USERNAME = ""
 GARMIN_PASSWORD = ""
 DEV = False
+APP_SECRET = ''
+DATA_DIR = '/tmp'
