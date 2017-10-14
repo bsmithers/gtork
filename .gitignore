@@ -5,3 +5,6 @@
 *.pyc
 
 gtork/config.py
+
+*.ipynb_checkpoints
+*.ipynb
