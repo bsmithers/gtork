@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import unittest
 
@@ -10,7 +11,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parser.type, 'running')
         self.assertEqual(parser.name, 'The title')
         self.assertEqual(parser.desciption, 'The description')
-        self.assertEqual(parser.start_time, '2017-09-23T08:05:03.000Z')
+        self.assertEqual(parser.start_time, datetime(2017, 9, 23, 8, 5, 3))
+
 
         self.assertEqual(len(parser.gps_points), 280)
 
@@ -22,7 +24,7 @@ class TestParser(unittest.TestCase):
         parser = self._get_parser('sample.tcx', TCXParser)
 
         self.assertEqual(parser.type, 'running')
-        self.assertEqual(parser.start_time, '2017-09-23T08:05:03.000Z')
+        self.assertEqual(parser.start_time, datetime(2017, 9, 23, 8, 5, 3))
         self.assertEqual(parser.heartrate[0].timestamp, parser.start_time)
         self.assertEqual(parser.calories, 348)
         self.assertEqual(parser.distance, 4844.74)
@@ -46,7 +48,7 @@ class TestParser(unittest.TestCase):
         """
         parser = self._get_parser('treadmill.tcx', TCXParser)
         self.assertEqual(parser.type, 'running')
-        self.assertEqual(parser.start_time, '2017-09-08T16:21:47.000Z')
+        self.assertEqual(parser.start_time, datetime(2017, 9, 8, 16, 21, 47))
         self.assertEqual(parser.heartrate[0].timestamp, parser.start_time)
         self.assertEqual(parser.calories, 360)
         self.assertEqual(parser.distance, 4744.08)

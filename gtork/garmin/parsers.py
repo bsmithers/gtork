@@ -1,4 +1,5 @@
 import collections
+from datetime import datetime
 import functools
 import re
 import xml.etree.ElementTree
@@ -30,6 +31,11 @@ def get_garmin_xml(xml_string):
         raise GarminParseException
 
 
+def parse_timestamp(ts):
+    timestamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+    return datetime.strptime(ts, timestamp_format)
+
+
 class GPXParser(object):
     # namespace extension
     ns3 = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
@@ -53,7 +59,7 @@ class GPXParser(object):
 
     @property
     def start_time(self):
-        return self._simple_lookup('metadata/time', required=True)
+        return parse_timestamp(self._simple_lookup('metadata/time', required=True))
 
     @property
     def gps_points(self):
@@ -65,7 +71,7 @@ class GPXParser(object):
                     latitude = trkpt.attrib['lat']
                     longitude = trkpt.attrib['lon']
                     elevation = trkpt.find('ele').text
-                    timestamp = trkpt.find('time').text
+                    timestamp = parse_timestamp(trkpt.find('time').text)
 
                     self._gps_points.append(GPSpoint(latitude=latitude, longitude=longitude, elevation=elevation, timestamp=timestamp))
 
@@ -134,13 +140,13 @@ class TCXParser(object):
         first_lap = laps[0]
 
         try:
-            return first_lap.attrib['StartTime']
+            return parse_timestamp(first_lap.attrib['StartTime'])
         except AttributeError:
             raise TCXException
 
     @property
     def heartrate(self):
-        timestamps = [e.text for e in self.tcx.findall('.//Lap/Track/Trackpoint/Time')]
+        timestamps = [parse_timestamp(e.text) for e in self.tcx.findall('.//Lap/Track/Trackpoint/Time')]
         hrs = [int(e.text) for e in self.tcx.findall('.//Lap/Track/Trackpoint/HeartRateBpm/Value')]
 
         return [HeartRate(hr=h, timestamp=t) for (h, t) in zip(hrs, timestamps)]
