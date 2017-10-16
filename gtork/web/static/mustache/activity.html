@@ -1,0 +1,11 @@
+<div class="row row-striped activity-row">
+    <div class="col-lg-4 col-md-8 col-12">
+        <a data-toggle="collapse" href="#collapseExample{{index}}" aria-expanded="false" aria-controls="collapseExample{{index}}">{{name}}</a>
+        <div class="collapse" id="collapseExample{{index}}">
+            <textarea class="form-control" rows="3" placeholder="Activity description" onchange="activity_data[{{index}}]['description'] = this.value">{{description}}</textarea>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-12">{{distance}}</div>
+    <div class="col-lg-3 col-md-8 col-12">{{time}}</div>
+    <div class="col-lg-3 col-md-4 col-12"><span class="upload_link" href="#" onclick="upload(this, {{index}})"><a href="#">Upload Now</a></span></div>
+</div>

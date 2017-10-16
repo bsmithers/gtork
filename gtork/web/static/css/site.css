@@ -1,6 +1,11 @@
 .activity-row{
     min-height: 2em;
 }
+
+.activity-row textarea{
+    margin-bottom: 5px;
+}
+
 .row-striped:nth-of-type(odd){
   background-color: #efefef;
 }

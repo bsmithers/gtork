@@ -43,11 +43,18 @@ function format_datetime(datetime){
     return day + " at " + pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2)
 }
 
-function upload(span, activity_id){
-    $(span).html('<span>Uploading activitiy...</span>');
-    console.log(activity_id);
-    var post_data = {"id" : activity_id};
-    $.post($SCRIPT_ROOT+"/upload", post_data, function(data) {
+function upload(span, index){
+    $(span).html('<span>Uploading activity...</span>');
+    var activity = activity_data[index];
+    console.log("Uploading activity: " + activity['activityId']);
+
+    var post_data = {
+        id: activity['activityId'],
+        name: activity['activityName'],
+        description: activity['description']
+    };
+
+    $.post(SCRIPT_ROOT+"/upload", post_data, function(data) {
         $("#status").html('<div class="alert alert-success" role="alert"> <strong>Done!</strong> Activity uploaded successfully. </div>')
         $(span).html('<span>Uploaded</span>');
     }).fail(function(data){
@@ -65,32 +72,34 @@ function upload(span, activity_id){
 
 }
 
-function generate_row(activity){
-    // Returns HTML for one row corresponding to one activity
-    return '<div class="row row-striped activity-row">' +
-            '<div class="col-lg-4 col-md-8 col-12">' + activity["activityName"] + '</div>' +
-            '<div class="col-lg-2 col-md-4 col-12">' + format_distance(activity["distance"]) + '</div>' +
-            '<div class="col-lg-3 col-md-8 col-12">' + format_datetime(activity["startTimeLocal"]) + '</div>' +
-            '<div class="col-lg-3 col-md-4 col-12"><span class="upload_link" href="#" onclick="upload(this, ' + activity['activityId'] + ')" ><a href="#">Upload Now</a></span></div>' +
-    '</div>';
-}
-
-
 $(document).ready(function() {
     console.log("Loading activities");
-    $.get($SCRIPT_ROOT + "/activities", function(data) {
+    $.get(MUSTACHE_ROOT + '/activity.html', function(data){
+        MUSTACHE_TEMPLATES['activity'] = data ;
+    });
+    $.get(SCRIPT_ROOT + "/activities", function(data) {
         try {
-            $("#list-container").empty()
-            data.forEach(function (activity) {
-                $("#status").html('')
-                $("#list-container").append(generate_row(activity))
+            $("#status").html('');
+            activity_data = data;
+
+            var list_container = $("#list-container");
+            list_container.empty();
+            activity_data.forEach(function (activity, i) {
+                var h =  Mustache.render(MUSTACHE_TEMPLATES['activity'], {
+                            index: i,
+                            name: activity["activityName"],
+                            description: activity["description"],
+                            distance: format_distance(activity["distance"]),
+                            time: format_datetime(activity["startTimeLocal"])
+                        });
+                list_container.append(h)
             });
         }catch(e){
-            console.log(e)
+            console.log(e);
             $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> The data we got back doesn\'t look good. </div>');
         }
     })
     .fail(function() {
-        $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> Couldn\'t load your activities right now. </div>')
+        $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> Couldn\'t load your activities right now. </div>');
     });
 });
