@@ -51,7 +51,9 @@ function upload(span, index){
     var post_data = {
         id: activity['activityId'],
         name: activity['activityName'],
-        description: activity['description']
+        description: activity['description'],
+        type: activity['activityType']['typeKey'],
+        local_start_time: activity['startTimeLocal']
     };
 
     $.post(SCRIPT_ROOT+"/upload", post_data, function(data) {

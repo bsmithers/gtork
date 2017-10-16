@@ -69,12 +69,18 @@ class Garmin(object):
 
     def download_activity(self, activity_id, data_dir):
 
+        files = {}
+
         for ext in ['gpx', 'tcx']:
             url = self.data_url.format(ext, activity_id)
             r = self._make_request(url, human_action="downloading {} data".format(ext), login_required=True)
             output_file = os.path.join(data_dir, activity_id +  '.' + ext)
             with open(output_file, 'wb') as h:
                 h.write(r.content)
+
+            files[ext] = output_file
+
+        return files      
 
     def _make_request(self, url, post=False, human_action='connecting to garmin', login_required=False, **kwargs):
         """
