@@ -10,10 +10,6 @@ class GarminException(Exception):
     pass
 
 
-class GarminLoginException(GarminException):
-    pass
-
-
 class Garmin(object):
 
     login_url = "https://sso.garmin.com/sso/login?service=https%3A%2F%2Fconnect.garmin.com%2Fpost-auth%2Flogin"
@@ -39,8 +35,7 @@ class Garmin(object):
     def login(self, username, password):
 
         # Initally make a get request to the login service to get a session id
-        r = self._session.get(self.login_url)
-        self._check_response(r, "fetching the base login URL")
+        r = self._make_request(self.login_url, human_action="fetching the base login URL")
 
         # Now we post the login details, along with some extra form information identified in manual inspection
         post_data = {
@@ -52,25 +47,20 @@ class Garmin(object):
             "displayNameRequired": "false"
         }
 
-        r = self._session.post(self.login_url, post_data)
-        self._check_response(r, 'posting the login data')
+        r = self._make_request(self.login_url, post=True, human_action="posting the login data", data=post_data)
 
         # Finally, Garmin require us to make a further request with a ticket extracted from this response
         ticket_matches = re.findall(re.escape('?ticket=') + '[^"]*', r.text)
         if len(ticket_matches) != 1 or len(ticket_matches[0]) < len('?ticket='):
-            raise GarminLoginException("Could not extract the ticket from the login response")
+            raise GarminException("Could not extract ticket from login response, username/password may be incorrect")
 
         url = self.post_login_url + ticket_matches[0]
-        r = self._session.get(url)
-        self._check_response(r, "confirming the Garmin ticket")
+        r = self._make_request(url, human_action="confirming the Garmin ticket")
 
         self._logged_in = True
 
     def fetch_activities(self):
-        if not self._logged_in:
-            raise GarminException("Must be logged in to fetch activities")
-        r = self._session.get(self.activity_url)
-        self._check_response(r, "fetching the activity URL")
+        r = self._make_request(self.activity_url, human_action="fetching the activity URL", login_required=True)
         if config.DEV:
             import json
             with open('/tmp/garmin.json', 'w') as fh:
@@ -78,20 +68,38 @@ class Garmin(object):
         return r.json()
 
     def download_activity(self, activity_id, data_dir):
-        if not self._logged_in:
-            raise GarminException("Must be logged in to download activities")
 
-        for format in ['gpx', 'tcx']:
-            url = self.data_url.format(format, activity_id)
-            r = self._session.get(url)
-            output_file = os.path.join(data_dir, activity_id +  '.' + format)
+        for ext in ['gpx', 'tcx']:
+            url = self.data_url.format(ext, activity_id)
+            r = self._make_request(url, human_action="downloading {} data".format(ext), login_required=True)
+            output_file = os.path.join(data_dir, activity_id +  '.' + ext)
             with open(output_file, 'wb') as h:
                 h.write(r.content)
 
-    def _check_response(self, r, message):
-        if r.status_code != 200:
-            raise GarminLoginException(
-                "Unsuccessful request when {}. Received response {:d}".format(message, r.status_code))
+    def _make_request(self, url, post=False, human_action='connecting to garmin', login_required=False, **kwargs):
+        """
+        Make a get or post request to the supplied url, passing kwargs to the approriate requests method.
+        GarminException is raised if the response fails, using the human_action to describe it.
+
+        Returns the response object
+        """
+        if login_required and not self._logged_in:
+            raise GarminException("Must be logged in when {}".format(human_action))
+
+        fn = self._session.get
+        if post:
+            fn = self._session.post
+
+        try:
+            r = fn(url, **kwargs)
+            if r.status_code != 200:
+                raise GarminException(
+                    "Unsuccessful request when {}. Received response {:d}".format(human_action, r.status_code))
+            return r
+        except requests.Timeout:
+            raise GarminException("Timeout when {}".format(human_action))
+        except requests.RequestException:
+            raise GarminException("Request failure when {}".format(human_action))
 
     def get_state(self):
         """

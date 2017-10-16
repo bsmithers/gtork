@@ -35,14 +35,12 @@ def upload():
     try:
         activity_id = request.form['id']
     except KeyError:
-        print('no id')
         return jsonify({'error': 'no activity ID specified'}), 400
 
     try:
         g = Garmin()
         g.reload_state(session['garmin_state'])
     except KeyError:
-        print('no session')
         return jsonify({'error': 'No garmin session was found; maybe you need to enable cookies?'}), 400
 
     g.download_activity(activity_id, config.DATA_DIR)

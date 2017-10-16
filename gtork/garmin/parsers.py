@@ -1,10 +1,7 @@
 import collections
-from datetime import datetime
 import functools
 import re
 import xml.etree.ElementTree
-
-from gtork import garmin
 
 
 class GarminParseException(Exception):
