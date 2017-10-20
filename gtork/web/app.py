@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, jsonify, request, session
+from flask import Flask, render_template, jsonify, request, session, Request
 
 from gtork.garmin.garmin import Garmin, GarminException
 from gtork.garmin.parsers import GarminParseException
@@ -8,6 +8,23 @@ from gtork.gtork import Activity, Garmin2Runkeeper
 from gtork.runkeeper.runkeeper import Runkeeper, RunkeeperException
 
 app = Flask(__name__)
+app.config.from_pyfile('../config.py')
+
+# Based on https://stackoverflow.com/a/19842544
+# Failing to force mod_wsgi-express to pass through X-Forwarded-[Scheme|Proto|Port]; instead
+# We'll use a config variable
+class ProxiedRequest(Request):
+    def __init__(self, environ, populate_request=True, shallow=False):
+        super(Request, self).__init__(environ, populate_request, shallow)
+        if app.config['FORCE_HTTPS']:
+            self.url = self.url.replace('http://', 'https://')
+            self.host_url = self.host_url.replace('http://', 'https://')
+            self.base_url = self.base_url.replace('http://', 'https://')
+            self.url_root = self.url_root.replace('http://', 'https://')
+
+app = Flask(__name__);
+app.request_class = ProxiedRequest
+# Side effect: the config file appears to need re-reading
 app.config.from_pyfile('../config.py')
 
 
@@ -85,9 +102,12 @@ def auth():
     client_id = app.config["RUNKEEPER_CLIENT_ID"]
     client_secret = app.config["RUNKEEPER_CLIENT_SECRET"]
 
-    access_token = Runkeeper.complete_authorisation(code, request.base_url, client_id, client_secret)
-    r = Runkeeper(access_token)
-    real_name = r.get_name()
+    try:
+        access_token = Runkeeper.complete_authorisation(code, request.base_url, client_id, client_secret)
+        r = Runkeeper(access_token)
+        real_name = r.get_name()
+    except RunkeeperException as e:
+        return "Sorry, we couldn't complete the runkeeper authorisation; {}".format(e)
 
     return render_template('auth_complete.html', access_token=access_token, real_name=real_name, additional_js=['credentials.js'])
 
