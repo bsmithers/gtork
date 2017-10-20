@@ -7,9 +7,6 @@ from gtork.garmin.parsers import GarminParseException
 from gtork.gtork import Activity, Garmin2Runkeeper
 from gtork.runkeeper.runkeeper import Runkeeper, RunkeeperException
 
-app = Flask(__name__)
-app.config.from_pyfile('../config.py')
-
 # Based on https://stackoverflow.com/a/19842544
 # Failing to force mod_wsgi-express to pass through X-Forwarded-[Scheme|Proto|Port]; instead
 # We'll use a config variable
@@ -22,9 +19,8 @@ class ProxiedRequest(Request):
             self.base_url = self.base_url.replace('http://', 'https://')
             self.url_root = self.url_root.replace('http://', 'https://')
 
-app = Flask(__name__);
+app = Flask(__name__)
 app.request_class = ProxiedRequest
-# Side effect: the config file appears to need re-reading
 app.config.from_pyfile('../config.py')
 
 
