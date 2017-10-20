@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block page %}
+<div class="container-fluid" id="container">
+
+    <div id="garmin-form-container">
+        <div class="alert alert-danger"><strong>Important!</strong>   We're about to ask you for your Garmin Connect username &amp; password. Although we do not store it, you should
+        still provide us with a password you do not use <em>anywhere else</em></div>
+        <form id="garmin-form">
+            <div class="form-group">
+            <label for="garmin-email">Garmin Email</label>
+            <input type="email" class="form-control" id="garmin-email" placeholder="Enter garmin email">
+          </div>
+          <div class="form-group">
+            <label for="garmin-password">Garmin Password</label>
+            <input type="password" class="form-control" id="garmin-password" placeholder="Enter garmin password" aria-describedby="passwordHelp">
+              <small id="passwordHelp" class="form-text text-muted">Remember, this should not be used anywhere else.</small>
+          </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <div id="runkeeper-form-container" style="display:none">
+        <div class="alert alert-success"><strong>Thanks!</strong> The last step is to connect to Runkeeper. When you click below, you will be
+            redirected to Runkeeper where you will be asked to give access to the app {{ config['RUNKEEPER_APP_NAME'] }}. We'll see you on the other side 😊</div>
+        <form id="runkeeper-form">
+            <button class="btw btn-primary">Connect to Runkeeper</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

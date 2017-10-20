@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% if additional_js is defined %}
+      {% for file in additional_js %}
+        <script src="{{ url_for('static', filename='js/'+file)}}"></script>
+      {% endfor %}
+    {% endif %}
+
+    <script type=application/javascript>
+        var SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        var RUNKEEPER_ACCESS_TOKEN = {{access_token | tojson}};
+        var RUNKEEPER_REAL_NAME = {{real_name | tojson}};
+
+        save_runkeeper(RUNKEEPER_ACCESS_TOKEN, RUNKEEPER_REAL_NAME);
+        var redirect = SCRIPT_ROOT + '/';
+        console.log('Redirecting to ' + redirect )
+        window.location.replace(redirect );
+
+    </script>
+</head>
+<body>
+Redirecting...
+</body>
+</html>

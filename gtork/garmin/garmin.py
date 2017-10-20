@@ -98,7 +98,7 @@ class Garmin(object):
 
         try:
             r = fn(url, **kwargs)
-            if r.status_code != 200:
+            if not r.ok:
                 raise GarminException(
                     "Unsuccessful request when {}. Received response {:d}".format(human_action, r.status_code))
             return r

@@ -34,7 +34,7 @@ function pad(n, width, z) {
 function format_datetime(datetime){
     var d = new Date(datetime);
     var now = new Date();
-    var day = d.toDateString()
+    var day = d.toDateString();
     if (is_same_day(d, now)) {
         day = "Today"
     }else if(is_yesteday(now, d)){
@@ -53,7 +53,8 @@ function upload(span, index){
         name: activity['activityName'],
         description: activity['description'],
         type: activity['activityType']['typeKey'],
-        local_start_time: activity['startTimeLocal']
+        local_start_time: activity['startTimeLocal'],
+        access_token: get_runkeeper_access()
     };
 
     $.post(SCRIPT_ROOT+"/upload", post_data, function(data) {
@@ -63,7 +64,7 @@ function upload(span, index){
         var reason = "There was an error. That's all we know.";
         try{
             var response = JSON.parse(data.responseText);
-            var reason = response['error'];
+            reason = response['error'];
         } catch(e){
             console.log("malformed response");
         }
@@ -75,11 +76,21 @@ function upload(span, index){
 }
 
 $(document).ready(function() {
+
+    if(!is_logged_in()){
+        var url = SCRIPT_ROOT + '/auth';
+        window.location.replace(url);
+        return;
+    }
+
+    $('#garmin-name').html(get_garmin_user());
+    $('#runkeeper-name').html(get_real_name());
+
     console.log("Loading activities");
     $.get(MUSTACHE_ROOT + '/activity.html', function(data){
         MUSTACHE_TEMPLATES['activity'] = data ;
     });
-    $.get(SCRIPT_ROOT + "/activities", function(data) {
+    $.get(SCRIPT_ROOT + "/activities", { user: get_garmin_user(), pass: get_garmin_pass()}, function(data) {
         try {
             $("#status").html('');
             activity_data = data;
@@ -101,7 +112,15 @@ $(document).ready(function() {
             $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> The data we got back doesn\'t look good. </div>');
         }
     })
-    .fail(function() {
+    .fail(function(data) {
         $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> Couldn\'t load your activities right now. </div>');
+        var reason = "Couldn\'t load your activities right now. ";
+        try{
+            var response = JSON.parse(data.responseText);
+            reason += response['error'];
+        } catch(e) {
+            console.log("error not given");
+        }
+        $("#status").html('<div class="alert alert-danger" role="alert"> <strong>Oops!</strong> ' + reason + ' </div>');
     });
 });
