@@ -10,7 +10,7 @@ class TestParser(unittest.TestCase):
         parser = self._get_parser('sample.gpx', GPXParser)
         self.assertEqual(parser.type, 'running')
         self.assertEqual(parser.name, 'The title')
-        self.assertEqual(parser.desciption, 'The description')
+        self.assertEqual(parser.description, 'The description')
         self.assertEqual(parser.start_time, datetime(2017, 9, 23, 8, 5, 3))
 
 
