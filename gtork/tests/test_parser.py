@@ -1,13 +1,13 @@
 from datetime import datetime
-import os
 import unittest
 
-from gtork.tests import TEST_DATA_DIR
+from gtork.tests import get_test_parser
 from gtork.garmin.parsers import GPXParser, TCXParser, GarminParseException
+
 
 class TestParser(unittest.TestCase):
     def test_valid_gpx(self):
-        parser = self._get_parser('sample.gpx', GPXParser)
+        parser = get_test_parser('sample.gpx', GPXParser)
         self.assertEqual(parser.type, 'running')
         self.assertEqual(parser.name, 'The title')
         self.assertEqual(parser.description, 'The description')
@@ -21,7 +21,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(len(parser.gps_points), len(parser.heartrate))
 
     def test_valid_tcx(self):
-        parser = self._get_parser('sample.tcx', TCXParser)
+        parser = get_test_parser('sample.tcx', TCXParser)
 
         self.assertEqual(parser.type, 'running')
         self.assertEqual(parser.start_time, datetime(2017, 9, 23, 8, 5, 3))
@@ -35,8 +35,8 @@ class TestParser(unittest.TestCase):
         """
         Check that the gpx and tcx parsers return the same values for the compatible fields
         """
-        gpx_parser = self._get_parser('sample.gpx', GPXParser)
-        tcx_parser = self._get_parser('sample.tcx', TCXParser)
+        gpx_parser = get_test_parser('sample.gpx', GPXParser)
+        tcx_parser = get_test_parser('sample.tcx', TCXParser)
 
         self.assertEqual(gpx_parser.start_time, tcx_parser.start_time)
         self.assertEqual(gpx_parser.heartrate, tcx_parser.heartrate)
@@ -46,33 +46,28 @@ class TestParser(unittest.TestCase):
         """
         Test a treadmill activity
         """
-        parser = self._get_parser('treadmill.tcx', TCXParser)
+        parser = get_test_parser('treadmill.tcx', TCXParser)
         self.assertEqual(parser.type, 'running')
         self.assertEqual(parser.start_time, datetime(2017, 9, 8, 16, 21, 47))
         self.assertEqual(parser.heartrate[0].timestamp, parser.start_time)
         self.assertEqual(parser.calories, 360)
         self.assertEqual(parser.distance, 4744.08)
-        self.assertEqual(parser.time, 2085.0)\
+        self.assertEqual(parser.time, 2085.0)
 
     def test_no_heartrate(self):
         """
         Gpx file is valid with heartrates
         """
-        parser = self._get_parser('nohr.gpx', GPXParser)
+        parser = get_test_parser('nohr.gpx', GPXParser)
         self.assertEqual(parser.heartrate, [])
 
     def test_empty_gpx(self):
         with self.assertRaises(GarminParseException):
-            gpx_parser = self._get_parser('empty.gpx', GPXParser)
+            gpx_parser = get_test_parser('empty.gpx', GPXParser)
 
     def test_invalid_tcx(self):
         with self.assertRaises(GarminParseException):
-            gpx_parser = self._get_parser('error.tcx', TCXParser)
-
-    def _get_parser(self, filename, parser_class):
-        data_file = os.path.join(TEST_DATA_DIR, filename)
-        with open(data_file) as h:
-            return parser_class(h.read())
+            gpx_parser = get_test_parser('error.tcx', TCXParser)
 
 
 if __name__ == '__main__':
