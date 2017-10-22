@@ -7,20 +7,7 @@ from gtork.garmin.parsers import GarminParseException
 from gtork.gtork import Activity, Garmin2Runkeeper
 from gtork.runkeeper.runkeeper import Runkeeper, RunkeeperException
 
-# Based on https://stackoverflow.com/a/19842544
-# Failing to force mod_wsgi-express to pass through X-Forwarded-[Scheme|Proto|Port]; instead
-# We'll use a config variable
-class ProxiedRequest(Request):
-    def __init__(self, environ, populate_request=True, shallow=False):
-        super(Request, self).__init__(environ, populate_request, shallow)
-        if app.config['FORCE_HTTPS']:
-            self.url = self.url.replace('http://', 'https://')
-            self.host_url = self.host_url.replace('http://', 'https://')
-            self.base_url = self.base_url.replace('http://', 'https://')
-            self.url_root = self.url_root.replace('http://', 'https://')
-
 app = Flask(__name__)
-app.request_class = ProxiedRequest
 app.config.from_pyfile('../config.py')
 
 
