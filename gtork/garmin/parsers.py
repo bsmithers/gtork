@@ -36,7 +36,7 @@ class GarminParser(object):
             xml_string = re.sub(' xmlns="[^"]+"', '', xml_string, count=1)
             self.xml = xml.etree.ElementTree.fromstring(xml_string)
         except xml.etree.ElementTree.ParseError:
-            raise GarminParseException
+            raise GarminParseException("Could not extract XML namespaces")
 
     @staticmethod
     def parse_timestamp(ts):
@@ -101,34 +101,37 @@ class GPXParser(GarminParser):
                     self._gps_points.append(GPSpoint(latitude=latitude, longitude=longitude, elevation=elevation, timestamp=timestamp))
 
             except (AttributeError, KeyError):
-                raise GPXException
+                raise GPXException("Error extracting GPS datapoints")
 
         return self._gps_points
 
     def _parse_heartrate(self):
 
-        search = "trk//trkpt/extensions/{%s}TrackPointExtension/{%s}hr" % (self.ns3, self.ns3)
+        hrs = []
+        hr_path = "extensions/{%s}TrackPointExtension/{%s}hr" % (self.ns3, self.ns3)
+        for trkpt in self.xml.findall('trk//trkpt'):
+            hr_tag = trkpt.find(hr_path)
+            if hr_tag is None:
+                continue
 
-        try:
-            hrs = [int(e.text) for e in self.xml.findall(search)]
-        except AttributeError:
-            raise GPXException
+            try:
+                timestamp = GarminParser.parse_timestamp(trkpt.find('time').text)
+                hr = int(hr_tag.text)
+            except AttributeError:
+                raise GPXException("Error extracting hr & timestamp data")
+            except ValueError:
+                raise GPXException('Could not convert heartrate to int in GPX data')
 
-        if len(hrs) == 0:
-            return hrs
+            hrs.append(HeartRate(hr=hr, timestamp=timestamp))
 
-        timestamps = [p.timestamp for p in self.gps_points]
-        if len(hrs) != len(timestamps):
-            raise GPXException
-
-        return [HeartRate(hr=h, timestamp=t) for (h, t) in zip(hrs, timestamps)]
+        return hrs
 
     def _simple_lookup(self, path, required=False, default=""):
         try:
             return self.xml.find(path).text
         except AttributeError:
             if required:
-                raise GPXException
+                raise GPXException("Could not find item at {}".format(path))
             return default
 
 
@@ -139,7 +142,7 @@ class TCXParser(GarminParser):
         try:
             return self.xml.find('Activities/Activity').attrib['Sport'].lower()
         except AttributeError:
-            raise TCXException
+            raise TCXException("Acitivity type not found in TCX data")
 
     @property
     def distance(self):
@@ -156,16 +159,24 @@ class TCXParser(GarminParser):
     @property
     def start_time(self):
         laps = self._get_laps()
+        if not laps:
+            raise TCXException("No laps found in TCX data")
+
         first_lap = laps[0]
 
         try:
             return GarminParser.parse_timestamp(first_lap.attrib['StartTime'])
         except AttributeError:
-            raise TCXException
+            raise TCXException("StartTime not found in lap")
 
     def _parse_heartrate(self):
-        timestamps = [GarminParser.parse_timestamp(e.text) for e in self.xml.findall('.//Lap/Track/Trackpoint/Time')]
-        hrs = [int(e.text) for e in self.xml.findall('.//Lap/Track/Trackpoint/HeartRateBpm/Value')]
+        try:
+            timestamps = [GarminParser.parse_timestamp(e.text) for e in self.xml.findall('.//Lap/Track/Trackpoint/Time')]
+            hrs = [int(e.text) for e in self.xml.findall('.//Lap/Track/Trackpoint/HeartRateBpm/Value')]
+        except TypeError:
+            raise TCXException("Error extracting timestamps and heartrates in TCX data")
+        except ValueError:
+            raise TCXException('Could not convert heartrate to int in TCX data')
 
         return [HeartRate(hr=h, timestamp=t) for (h, t) in zip(hrs, timestamps)]
 
@@ -175,7 +186,9 @@ class TCXParser(GarminParser):
             values = [type_(l.find(field).text) for l in self._get_laps()]
             return sum(values)
         except AttributeError:
-            raise TCXException
+            raise TCXException('Could not find {} in TCX data'.format(field))
+        except ValueError:
+            raise TCXException('Could not convert {} to {} in TCX data'.format(field, type_))
 
     def _get_laps(self):
         return self.xml.findall('.//Lap')

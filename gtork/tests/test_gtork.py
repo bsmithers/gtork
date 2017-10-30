@@ -46,6 +46,9 @@ class BasicGPSTest(unittest.TestCase):
             self.assertGreater(hr['timestamp'], last_timestamp)
             last_timestamp = hr['timestamp']
 
+        # The first point is at t=0
+        self.assertEqual(result['heart_rate'][0]["timestamp"], 0)
+
     def check_gps(self, result):
         self.assertIn('path', result)
         last_timestamp = -1
@@ -120,6 +123,36 @@ class RunningNonGPSTest(BasicGPSTest):
     def test_gpx_raises_exception(self):
         with self.assertRaises(ConversionException):
             converter = Garmin2Runkeeper(self.get_activity(), 'non-empty', self.get_tcx())
+
+
+class PartialHRTest(BasicGPSTest):
+    """
+    Test a file with the 1st & 3rd hrs removed. hr timestamps should be calculated relative to
+    the activity start time
+    """
+
+    def get_gpx(self):
+        return get_test_xml('partial_hr.gpx')
+
+    def complex_checks(self, result):
+        self.assertEqual(len(result['heart_rate']), len(result['path']) - 2)
+        self.check_hr(result)
+        self.check_gps(result)
+
+        # Check the timetamps agree taking into account the missing hrs
+        self.assertEqual(result['heart_rate'][0]['timestamp'], result['path'][1]['timestamp'])
+        for i in range(1, len(result['heart_rate'])):
+            self.assertEqual(result['heart_rate'][i]['timestamp'], result['path'][i+2]['timestamp'])
+
+    def check_hr(self, result):
+
+        # Compare the timestamps (in seconds since activity start) for the first few HRs against
+        # manual calculations
+        self.assertEqual(result['heart_rate'][0]["timestamp"], 1)
+        self.assertEqual(result['heart_rate'][1]["timestamp"], 7)
+        self.assertEqual(result['heart_rate'][2]["timestamp"], 10)
+
+
 
 
 if __name__ == '__main__':

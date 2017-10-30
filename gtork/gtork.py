@@ -77,11 +77,9 @@ class Garmin2Runkeeper(object):
         if not self.parser.heartrate:
             return None
 
-        initial = self.parser.heartrate[0].timestamp
-
         datapoints = []
         for hr in self.parser.heartrate:
-            delta = hr.timestamp - initial
+            delta = hr.timestamp - self.parser.start_time
             datapoint = {
                 'timestamp': delta.seconds,
                 'heart_rate': hr.hr
@@ -94,10 +92,9 @@ class Garmin2Runkeeper(object):
         if not self.is_gps_type():
             return None
 
-        initial = self.parser.gps_points[0].timestamp
         datapoints = []
         for gps in self.parser.gps_points:
-            delta = gps.timestamp - initial
+            delta = gps.timestamp - self.parser.start_time
             datapoint = {
                 'timestamp': delta.seconds,
                 'latitude': gps.latitude,

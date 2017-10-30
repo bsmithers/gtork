@@ -69,6 +69,16 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(GarminParseException):
             gpx_parser = get_test_parser('error.tcx', TCXParser)
 
+    def test_partial_heartrate(self):
+        """
+        Test a file with the 1st & 3rd hrs removed. Hrs should still be returned and should
+        use the associated timestamps
+        """
+        parser = get_test_parser('partial_hr.gpx', GPXParser)
+        self.assertEqual(len(parser.heartrate), len(parser.gps_points) - 2)
+        self.assertNotEqual(parser.heartrate[0].timestamp, parser.start_time)
+        self.assertEqual(parser.heartrate[-1].timestamp, parser.gps_points[-1].timestamp)
+
 
 if __name__ == '__main__':
     unittest.main()
