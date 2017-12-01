@@ -3,6 +3,7 @@ import unittest
 from gtork.gtork import Garmin2Runkeeper, Activity, ConversionException
 from gtork.tests import get_test_xml
 
+
 class BasicGPSTest(unittest.TestCase):
     a_name = 'the name'
     a_description = 'some description'
@@ -12,6 +13,7 @@ class BasicGPSTest(unittest.TestCase):
     e_type = 'Running'
     e_start_time = 'Fri, 13 Oct 2017 13:50:35'
     e_notes = 'the name: some description'
+    options={}
 
     def get_expected(self):
         return {
@@ -73,7 +75,7 @@ class BasicGPSTest(unittest.TestCase):
             last_timestamp = p['timestamp']
 
     def test_conversion(self):
-        converter = Garmin2Runkeeper(self.get_activity(), self.get_gpx(), self.get_tcx())
+        converter = Garmin2Runkeeper(self.get_activity(), self.get_gpx(), self.get_tcx(), options=self.options)
         result = converter.as_rk_dict()
 
         # Check the simple fields are present & correct
@@ -83,6 +85,19 @@ class BasicGPSTest(unittest.TestCase):
 
         # Now do the more complex checks
         self.complex_checks(result)
+
+
+class RunningOverrideGPS(BasicGPSTest):
+
+    options={"override_gps": True}
+
+    def get_expected(self):
+        d = super().get_expected()
+        d['total_distance'] = 4844.74
+        return d
+
+    def complex_checks(self, result):
+        self.assertNotIn('path', result)
 
 
 class CycleGPSTest(BasicGPSTest):

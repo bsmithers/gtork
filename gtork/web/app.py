@@ -36,12 +36,13 @@ def activities():
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
-        activity_id = request.form['id']
-        activity_name = request.form['name']
-        activity_desc = request.form['description']
-        activity_type = request.form['type']
-        activity_start = request.form['local_start_time']
-        runkeeper_access_token = request.form['access_token']
+        activity_id = str(request.json['id'])
+        activity_name = request.json['name']
+        activity_desc = request.json['description']
+        activity_type = request.json['type']
+        activity_start = str(request.json['local_start_time'])
+        runkeeper_access_token = str(request.json['access_token'])
+        options = request.json['options']
     except KeyError as e:
         return jsonify({"error": "activity data not provided"}), 400
 
@@ -58,7 +59,7 @@ def upload():
         with open(garmin_files['gpx']) as gpx_handle, open(garmin_files['tcx']) as tcx_handle:
             gpx_data = gpx_handle.read()
             tcx_data = tcx_handle.read()
-            converter = Garmin2Runkeeper(activity, gpx_data, tcx_data)
+            converter = Garmin2Runkeeper(activity, gpx_data, tcx_data, options=options)
             json_data = converter.as_rk_dict()
     except GarminException as e:
         return jsonify({'error': 'Error communicating with garmin. Exception: {}'.format(e)}), 400

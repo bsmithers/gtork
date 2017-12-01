@@ -20,9 +20,10 @@ class Garmin2Runkeeper(object):
         }
     }
 
-    def __init__(self, activity, gpx_data, tcx_data):
+    def __init__(self, activity, gpx_data, tcx_data, options=()):
         self.rk_object = {}
         self.activity = activity
+        self.options = dict(options)
 
         if not (self.is_gps_type() or self.activity.type in Garmin2Runkeeper.nongps_types):
             raise ConversionException("Activity type {} not supported".format(activity.type))
@@ -32,7 +33,7 @@ class Garmin2Runkeeper(object):
                 raise ConversionException(
                     'Non GPS type {} supplied, but Garmin provided non-zero gpx file'.format(activity.type))
 
-        if self.is_gps_type():
+        if self.is_gps_type() and not self.options.get('override_gps', False):
             self.parser = GPXParser(gpx_data)
         else:
             self.parser = TCXParser(tcx_data)
@@ -46,11 +47,13 @@ class Garmin2Runkeeper(object):
         if hr:
             rk_object['heart_rate'] = hr
 
-        if self.is_gps_type():
+        if self.is_gps_type() and not self.options.get('override_gps', False):
             rk_object['path'] = self._format_path()
         else:
             rk_object['total_distance'] = self.parser.distance
             rk_object['duration'] = self.parser.time
+
+        if not self.is_gps_type():
             rk_object['equipment'] = Garmin2Runkeeper.nongps_types[self.activity.type]['equipment']
 
         return rk_object

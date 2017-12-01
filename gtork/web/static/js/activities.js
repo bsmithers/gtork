@@ -54,10 +54,17 @@ function upload(span, index){
         description: activity['description'],
         type: activity['activityType']['typeKey'],
         local_start_time: activity['startTimeLocal'],
-        access_token: get_runkeeper_access()
+        access_token: get_runkeeper_access(),
+        options: {
+            override_gps: $(".override-gps").is(':checked')
+        }
     };
 
-    $.post(SCRIPT_ROOT+"/upload", post_data, function(data) {
+    $.ajax(SCRIPT_ROOT+"/upload", {
+        data: JSON.stringify(post_data),
+        contentType: "application/json",
+        type: "POST"
+    }).done(function(){
         $("#status").html('<div class="alert alert-success" role="alert"> <strong>Done!</strong> Activity uploaded successfully. </div>')
         $(span).html('<span>Uploaded</span>');
     }).fail(function(data){
